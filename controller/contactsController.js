@@ -4,12 +4,13 @@ const {
   favoriteFieldSchema,
 } = require("../validators/contactValidator");
 const {
-  getContactsAll,
-  getContactById,
-  removeContact,
   addContact,
+  getContactById,
+  getContactsAll,
+  removeContact,
   upDateContact,
 } = require("../services/contactService");
+
 const handleJoiError = (error, res) => {
   res.status(400).json({ message: error.message });
 };
@@ -87,15 +88,12 @@ const updateFavorite = async (req, res, next) => {
     const contactId = req.params.contactId;
     const { favorite } = req.body;
     const { error } = favoriteFieldSchema.validate({ favorite });
-    if (error) {
-      handleJoiError(error, res);
+    if (error) return handleJoiError(error, res);
+    const updatedContact = await upDateContact(contactId, { favorite });
+    if (updatedContact) {
+      res.json(updatedContact);
     } else {
-      const updatedContact = await upDateContact(contactId, { favorite });
-      if (updatedContact) {
-        res.json(updatedContact);
-      } else {
-        handleNotFoundError(res, contactId);
-      }
+      handleNotFoundError(res, contactId);
     }
   } catch (error) {
     next(error);
