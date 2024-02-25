@@ -1,5 +1,6 @@
 const express = require("express");
 const bcrypt = require("bcrypt");
+const gravatar = require("gravatar");
 const jwt = require("jsonwebtoken");
 const { userSchema } = require("../validators/userValidator");
 const {
@@ -20,15 +21,19 @@ const signup = async (req, res, next) => {
     const { password, email, subscription } = req.body;
     const isEmailTaken = await findUserByEmail(email);
     if (isEmailTaken) return handleJoiError(400, "Email in use", res);
+    const avatarURL = gravatar.url(email, { s: "200", r: "pg", d: "identicon" });
+    const fixedAvatarURL = `https:${avatarURL}`;
     const hashedPassword = await bcrypt.hash(password, 10);
     const response = await addNewUser({
       ...req.body,
       password: hashedPassword,
+      avatarURL:fixedAvatarURL ,
     });
 
     res.status(201).json({
       email: response.email,
       subscription: response.subscription,
+      avatarURL:fixedAvatarURL ,
     });
   } catch (error) {
     next(error);
