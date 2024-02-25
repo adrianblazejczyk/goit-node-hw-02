@@ -7,25 +7,30 @@ function validateObjectId(contactId) {
   }
 }
 
-async function getContactsAll() {
+async function getContactsAll(idUser, page, limit,favorite) {
   try {
-    return await Contact.find();
+    const skip = (page - 1) * limit;
+    let query = { owner: idUser };
+    if (favorite === 'true') {
+      query.favorite = true;
+    }
+    return await Contact.find(query).skip(skip).limit(limit);
   } catch (error) {
     throw error;
   }
 }
-async function getContactById(contactId) {
+async function getContactById(idUser, contactId) {
   try {
     validateObjectId(contactId);
-    return await Contact.findById(contactId);
+    return await Contact.findOne({ owner: idUser, _id: contactId });
   } catch (error) {
     throw error;
   }
 }
-async function removeContact(contactId) {
+async function removeContact(idUser, contactId) {
   try {
     validateObjectId(contactId);
-    return await Contact.deleteOne({ _id: { $eq: contactId } });
+    return await Contact.deleteOne({ owner: idUser, _id: contactId });
   } catch (error) {
     throw error;
   }
@@ -37,16 +42,17 @@ async function addContact(contactData) {
     throw error;
   }
 }
-async function upDateContact(contactId, updatedData) {
+async function upDateContact(idUser, contactId, updatedData) {
   try {
     validateObjectId(contactId);
-    return await Contact.findByIdAndUpdate(contactId, updatedData, {
+    return await Contact.findOneAndUpdate({ owner: idUser, _id: contactId }, updatedData, {
       new: true,
     });
   } catch (error) {
     throw error;
   }
 }
+
 
 module.exports = {
   getContactsAll,
