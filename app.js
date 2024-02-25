@@ -8,6 +8,7 @@ const { error } = require("./validators/contactValidator");
 
 const app = express();
 const formatsLogger = app.get("env") === "development" ? "dev" : "short";
+app.use(express.static('public'));
 
 app.use(logger(formatsLogger));
 app.use(cors());
