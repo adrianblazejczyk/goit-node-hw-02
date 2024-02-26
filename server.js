@@ -5,10 +5,7 @@ const uriDb = process.env.DB_HOST;
 const mongoose = require("mongoose");
 const app = require("./app");
 
-const connection = mongoose.connect(uriDb, {
-  useNewUrlParser: true,
-  useUnifiedTopology: true,
-});
+const connection = mongoose.connect(uriDb);
 
 mongoose.connection.on("connected", () => {
   console.log("Database connection successful");

@@ -4,12 +4,13 @@ const {
   favoriteFieldSchema,
 } = require("../validators/contactValidator");
 const {
-  getContactsAll,
-  getContactById,
-  removeContact,
   addContact,
+  getContactById,
+  getContactsAll,
+  removeContact,
   upDateContact,
 } = require("../services/contactService");
+
 const handleJoiError = (error, res) => {
   res.status(400).json({ message: error.message });
 };
@@ -18,7 +19,10 @@ const handleNotFoundError = (res, contactId) => {
 };
 const getAll = async (req, res, next) => {
   try {
-    const data = await getContactsAll();
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 20;
+    const favorite = req.query.favorite || false;
+    const data = await getContactsAll(req.user.id, page, limit, favorite);
     res.json({ data });
   } catch (error) {
     next(error);
@@ -27,26 +31,20 @@ const getAll = async (req, res, next) => {
 const getById = async (req, res, next) => {
   try {
     const contactId = req.params.contactId;
-    const data = await getContactById(contactId);
-    console.log(data);
-    if (data) {
-      res.json(data);
-    } else {
-      handleNotFoundError(res, contactId);
-    }
+    const data = await getContactById(req.user.id, contactId);
+    if (data) return res.json(data);
+    handleNotFoundError(res, contactId);
   } catch (error) {
     next(error);
+    a;
   }
 };
 const add = async (req, res, next) => {
   try {
     const { error } = contactSchema.validate(req.body);
-    if (error) {
-      handleJoiError(error, res);
-    } else {
-      const response = await addContact(req.body);
-      res.status(201).json(response);
-    }
+    if (error) return handleJoiError(error, res);
+    const response = await addContact({ ...req.body, owner: req.user.id });
+    res.status(201).json(response);
   } catch (error) {
     next(error);
   }
@@ -54,12 +52,9 @@ const add = async (req, res, next) => {
 const deleted = async (req, res, next) => {
   try {
     const contactId = req.params.contactId;
-    const data = await removeContact(contactId);
-    if (data) {
-      res.json({ message: "Contact deleted" });
-    } else {
-      handleNotFoundError(res, contactId);
-    }
+    const data = await removeContact(req.user.id, contactId);
+    if (data) return res.json({ message: "Contact deleted" });
+    handleNotFoundError(res, contactId);
   } catch (error) {
     next(error);
   }
@@ -71,12 +66,13 @@ const update = async (req, res, next) => {
     if (error) {
       handleJoiError(error, res);
     } else {
-      const updatedContact = await upDateContact(contactId, req.body);
-      if (updatedContact) {
-        res.json(updatedContact);
-      } else {
-        handleNotFoundError(res, contactId);
-      }
+      const updatedContact = await upDateContact(
+        req.user.id,
+        contactId,
+        req.body
+      );
+      if (updatedContact) return res.json(updatedContact);
+      handleNotFoundError(res, contactId);
     }
   } catch (error) {
     next(error);
@@ -87,16 +83,10 @@ const updateFavorite = async (req, res, next) => {
     const contactId = req.params.contactId;
     const { favorite } = req.body;
     const { error } = favoriteFieldSchema.validate({ favorite });
-    if (error) {
-      handleJoiError(error, res);
-    } else {
-      const updatedContact = await upDateContact(contactId, { favorite });
-      if (updatedContact) {
-        res.json(updatedContact);
-      } else {
-        handleNotFoundError(res, contactId);
-      }
-    }
+    if (error) return handleJoiError(error, res);
+    const updatedContact = await upDateContact(contactId, { favorite });
+    if (updatedContact) return res.json(updatedContact);
+    handleNotFoundError(res, contactId);
   } catch (error) {
     next(error);
   }
