@@ -1,7 +1,11 @@
 const express = require("express");
+const path = require("path");
+
 const bcrypt = require("bcrypt");
 const gravatar = require("gravatar");
 const jwt = require("jsonwebtoken");
+const jimp = require("jimp");
+
 const { userSchema } = require("../validators/userValidator");
 const {
   addNewUser,
@@ -9,8 +13,12 @@ const {
   updateToken,
   updateSub,
   findUserById,
+  updateAvat,
 } = require("../services/userService");
+const { generateUniqueFileName } = require("../services/avatarServices");
+
 const { SECRET_KEY } = process.env;
+
 const handleJoiError = (status, message, res) => {
   res.status(status).json({ message: message });
 };
@@ -21,19 +29,23 @@ const signup = async (req, res, next) => {
     const { password, email, subscription } = req.body;
     const isEmailTaken = await findUserByEmail(email);
     if (isEmailTaken) return handleJoiError(400, "Email in use", res);
-    const avatarURL = gravatar.url(email, { s: "200", r: "pg", d: "identicon" });
+    const avatarURL = gravatar.url(email, {
+      s: "200",
+      r: "pg",
+      d: "identicon",
+    });
     const fixedAvatarURL = `https:${avatarURL}`;
     const hashedPassword = await bcrypt.hash(password, 10);
     const response = await addNewUser({
       ...req.body,
       password: hashedPassword,
-      avatarURL:fixedAvatarURL ,
+      avatarURL: fixedAvatarURL,
     });
 
     res.status(201).json({
       email: response.email,
       subscription: response.subscription,
-      avatarURL:fixedAvatarURL ,
+      avatarURL: fixedAvatarURL,
     });
   } catch (error) {
     next(error);
@@ -72,7 +84,7 @@ const logout = async (req, res, next) => {
     const dataUser = await findUserById(id);
     if (!dataUser) return handleJoiError("Not authorized", res);
     await updateToken(id, null);
-    res.status(204).json({message:"No Content"});
+    res.status(204).json({ message: "No Content" });
   } catch (error) {
     next(error);
   }
@@ -111,10 +123,45 @@ const updateSubscription = async (req, res, next) => {
     next(error);
   }
 };
+const updateAvatar = async (req, res, next) => {
+  try {
+    const userAvatarFileName = generateUniqueFileName(req.file.filename);
+    const userAvatarPath = req.file.path;
+    jimp
+      .read(userAvatarPath)
+      .then((avatar) => {
+        return avatar.resize(250, 250).quality(80);
+      })
+      .then((avatar) => {
+        const destinationPath = path.join(
+          "public",
+          "avatars",
+          userAvatarFileName
+        );
+        return avatar.writeAsync(destinationPath);
+      })
+      .then(() => {
+        const { id } = req.user;
+        const avatarURLdata = { avatarURL: `/avatars/${userAvatarFileName}` };
+        updateAvat(id, avatarURLdata);
+        return res
+          .status(200)
+          .json({ message: "Avatar uploaded successfully", avatarURLdata });
+      })
+      .catch((error) => {
+        console.error("Error:", error);
+        return res.status(500).json({ error: "Error processing the avatar" });
+      });
+  } catch (error) {
+    next(error);
+  }
+};
+
 module.exports = {
   signup,
   login,
   logout,
   getUserFromToken,
+  updateAvatar,
   updateSubscription,
 };
