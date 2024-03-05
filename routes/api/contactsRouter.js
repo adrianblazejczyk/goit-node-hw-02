@@ -1,6 +1,8 @@
 const express = require("express");
+
 const authorize = require("../../middlewares/authorize")
 const ctrlContacts = require("../../controller/contactsController");
+
 const router = express.Router();
 
 router.get("/", authorize, ctrlContacts.getAll);

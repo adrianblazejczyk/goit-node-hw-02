@@ -1,4 +1,5 @@
 const Contact = require("./schemas/contactSchema");
+
 const mongoose = require("mongoose");
 
 function validateObjectId(contactId) {

@@ -1,9 +1,11 @@
 const express = require("express");
+
 const logger = require("morgan");
 const cors = require("cors");
 
 const contactsRouter = require("./routes/api/contactsRouter");
 const userRouter = require("./routes/api/usersRouter");
+
 const { error } = require("./validators/contactValidator");
 
 const app = express();

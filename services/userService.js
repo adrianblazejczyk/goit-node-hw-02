@@ -1,4 +1,5 @@
 const User = require("./schemas/userSchema");
+
 const mongoose = require("mongoose");
 
 function validateObjectId(contactId) {
@@ -44,6 +45,15 @@ async function updateSub(contactId, updatedData) {
     throw error;
   }
 }
+async function updateAvat(contactId, updatedData) {
+  try {
+    return await User.findOneAndUpdate({ _id: contactId }, updatedData, {
+      new: true,
+    });
+  } catch (error) {
+    throw error;
+  }
+}
 
 module.exports = {
   addNewUser,
@@ -51,4 +61,5 @@ module.exports = {
   updateToken,
   updateSub,
   findUserById,
+  updateAvat,
 };

@@ -1,7 +1,10 @@
 const jwt = require("jsonwebtoken");
+
 const { findUserById } = require("../services/userService");
-require("dotenv").config();
 const { SECRET_KEY } = process.env;
+
+require("dotenv").config();
+
 const handleJoiError = (status, message, res) => {
   res.status(status).json({ message: message });
 };
@@ -20,9 +23,7 @@ const authorize = async (req, res, next) => {
     req.user = user;
     next();
   } catch (error) {
-    if (error.name === "JsonWebTokenError")
-      return handleJoiError(403, "Not authorized", res);
-    return next(error);
+    return handleJoiError(403, "Not authorized", res);
   }
 };
 
