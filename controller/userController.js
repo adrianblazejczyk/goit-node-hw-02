@@ -134,31 +134,17 @@ const updateAvatar = async (req, res, next) => {
   try {
     const userAvatarFileName = generateUniqueFileName(req.file.filename);
     const userAvatarPath = req.file.path;
-    jimp
-      .read(userAvatarPath)
-      .then((avatar) => {
-        return avatar.resize(250, 250).quality(80);
-      })
-      .then((avatar) => {
-        const destinationPath = path.join(
-          "public",
-          "avatars",
-          userAvatarFileName
-        );
-        return avatar.writeAsync(destinationPath);
-      })
-      .then(() => {
-        const { id } = req.user;
-        const avatarURLdata = { avatarURL: `/avatars/${userAvatarFileName}` };
-        updateAvat(id, avatarURLdata);
-        return res
-          .status(200)
-          .json({ message: "Avatar uploaded successfully", avatarURLdata });
-      })
-      .catch((error) => {
-        console.error("Error:", error);
-        return res.status(500).json({ error: "Error processing the avatar" });
-      });
+
+    const avatar = await jimp.read(userAvatarPath);
+    const resizedAvatar = await avatar.resize(250, 250).quality(80);
+    const destinationPath = path.join("public", "avatars", userAvatarFileName);
+    await resizedAvatar.writeAsync(destinationPath);
+    const { id } = req.user;
+    const avatarURLdata = { avatarURL: `/avatars/${userAvatarFileName}` };
+    await updateAvat(id, avatarURLdata);
+    res
+      .status(200)
+      .json({ message: "Avatar uploaded successfully", avatarURLdata });
   } catch (error) {
     next(error);
   }

@@ -45,7 +45,7 @@ async function updateSub(contactId, updatedData) {
     throw error;
   }
 }
-async function updateAvat(contactId) {
+async function updateAvat(contactId, updatedData) {
   try {
     return await User.findOneAndUpdate({ _id: contactId }, updatedData, {
       new: true,
