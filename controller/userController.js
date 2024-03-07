@@ -6,7 +6,7 @@ const jwt = require("jsonwebtoken");
 const jimp = require("jimp");
 const { nanoid } = require("nanoid");
 
-const { userSchema } = require("../validators/userValidator");
+const { userSchema, userEmail } = require("../validators/userValidator");
 const {
   addNewUser,
   findUserByEmail,
@@ -176,6 +176,31 @@ const verifyUserByToken = async (req, res, next) => {
     next(error);
   }
 };
+const resendActivationLink = async (req, res, next) => {
+  try {
+    const { email } = req.body;
+    const { error } = userEmail.validate(req.body);
+    if (error)
+      return handleJoiError(
+        400,
+        { message: "missing required field email" },
+        res
+      );
+    const userData = await findUserByEmail(email);
+    if (!userData)
+      return res
+        .status(400)
+        .json({ message: "The user with the specified email was not found" });
+    if (userData.verify)
+      return res
+        .status(400)
+        .json({ message: "Verification has already been passed" });
+    await sendVerificationEmail(email, userData.verificationToken);
+    return res.status(200).json({ message: `Verification email sent` });
+  } catch (error) {
+    next(error);
+  }
+};
 
 module.exports = {
   signup,
@@ -185,4 +210,5 @@ module.exports = {
   updateAvatar,
   updateSubscription,
   verifyUserByToken,
+  resendActivationLink,
 };

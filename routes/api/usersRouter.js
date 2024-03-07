@@ -13,7 +13,6 @@ router.get("/current", authorize, ctrlUsers.getUserFromToken);
 router.patch("/", authorize, ctrlUsers.updateSubscription);
 router.patch("/avatars", authorize, upload, ctrlUsers.updateAvatar);
 router.get("/verify/:verificationToken", ctrlUsers.verifyUserByToken);
-
-
+router.post("/verify", ctrlUsers.resendActivationLink);
 
 module.exports = router;
