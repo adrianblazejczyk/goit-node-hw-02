@@ -1,10 +1,10 @@
 const express = require("express");
 const path = require("path");
-
 const bcrypt = require("bcrypt");
 const gravatar = require("gravatar");
 const jwt = require("jsonwebtoken");
 const jimp = require("jimp");
+const { nanoid } = require("nanoid");
 
 const { userSchema } = require("../validators/userValidator");
 const {
@@ -16,6 +16,8 @@ const {
   updateAvat,
   verificateEmail,
 } = require("../services/userService");
+
+const { sendVerificationEmail } = require("../services/emailSender");
 const { generateUniqueFileName } = require("../services/avatarServices");
 
 const { SECRET_KEY } = process.env;
@@ -25,6 +27,7 @@ const handleJoiError = (status, message, res) => {
 };
 const signup = async (req, res, next) => {
   try {
+    const generatedToken = nanoid();
     const { error } = userSchema.validate(req.body);
     if (error) return handleJoiError(400, error.message, res);
     const { password, email, subscription } = req.body;
@@ -41,7 +44,10 @@ const signup = async (req, res, next) => {
       ...req.body,
       password: hashedPassword,
       avatarURL: fixedAvatarURL,
+      verificationToken: generatedToken,
     });
+
+    await sendVerificationEmail(email, generatedToken);
 
     res.status(201).json({
       email: response.email,
@@ -162,7 +168,7 @@ const verifyUserByToken = async (req, res, next) => {
     const verificationToken = req.params.verificationToken;
     const a = await verificateEmail(verificationToken);
     console.log(a);
-    if(!a) return res.status(404).json({ message: "User not found" });
+    if (!a) return res.status(404).json({ message: "User not found" });
     return res
       .status(200)
       .json({ message: `message: 'Verification successful` });
@@ -175,7 +181,6 @@ module.exports = {
   signup,
   login,
   logout,
-
   getUserFromToken,
   updateAvatar,
   updateSubscription,

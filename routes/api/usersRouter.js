@@ -15,4 +15,5 @@ router.patch("/avatars", authorize, upload, ctrlUsers.updateAvatar);
 router.get("/verify/:verificationToken", ctrlUsers.verifyUserByToken);
 
 
+
 module.exports = router;
