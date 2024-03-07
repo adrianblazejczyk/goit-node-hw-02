@@ -14,6 +14,7 @@ const {
   updateSub,
   findUserById,
   updateAvat,
+  verificateEmail,
 } = require("../services/userService");
 const { generateUniqueFileName } = require("../services/avatarServices");
 
@@ -156,12 +157,27 @@ const updateAvatar = async (req, res, next) => {
     next(error);
   }
 };
+const verifyUserByToken = async (req, res, next) => {
+  try {
+    const verificationToken = req.params.verificationToken;
+    const a = await verificateEmail(verificationToken);
+    console.log(a);
+    if(!a) return res.status(404).json({ message: "User not found" });
+    return res
+      .status(200)
+      .json({ message: `message: 'Verification successful` });
+  } catch (error) {
+    next(error);
+  }
+};
 
 module.exports = {
   signup,
   login,
   logout,
+
   getUserFromToken,
   updateAvatar,
   updateSubscription,
+  verifyUserByToken,
 };

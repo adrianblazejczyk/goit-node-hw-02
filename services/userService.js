@@ -45,11 +45,24 @@ async function updateSub(contactId, updatedData) {
     throw error;
   }
 }
-async function updateAvat(contactId, updatedData) {
+async function updateAvat(contactId) {
   try {
     return await User.findOneAndUpdate({ _id: contactId }, updatedData, {
       new: true,
     });
+  } catch (error) {
+    throw error;
+  }
+}
+async function verificateEmail(idVeryficate) {
+  try {
+    return await User.findOneAndUpdate(
+      { verificationToken: idVeryficate },
+      { verify: true },
+      {
+        new: true,
+      }
+    );
   } catch (error) {
     throw error;
   }
@@ -62,4 +75,5 @@ module.exports = {
   updateSub,
   findUserById,
   updateAvat,
+  verificateEmail,
 };

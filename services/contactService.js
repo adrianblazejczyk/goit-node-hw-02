@@ -55,6 +55,7 @@ async function upDateContact(idUser, contactId, updatedData) {
 }
 
 
+
 module.exports = {
   getContactsAll,
   getContactById,
