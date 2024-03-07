@@ -58,7 +58,7 @@ async function verificateEmail(idVeryficate) {
   try {
     return await User.findOneAndUpdate(
       { verificationToken: idVeryficate },
-      { verify: true },
+      { verify: true, verificationToken: null },
       {
         new: true,
       }
