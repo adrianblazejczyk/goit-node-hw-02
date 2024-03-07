@@ -66,7 +66,7 @@ const login = async (req, res, next) => {
     const userData = await findUserByEmail(email);
     if (!userData)
       return handleJoiError(401, "Email or password is wrong", res);
-
+    if (!userData.verify) return handleJoiError(403, "Unverified account", res);
     const isPasswordValid = await bcrypt.compare(password, userData.password);
     if (!isPasswordValid)
       return handleJoiError(401, "Email or password is wrong", res);
