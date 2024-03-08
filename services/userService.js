@@ -54,6 +54,19 @@ async function updateAvat(contactId, updatedData) {
     throw error;
   }
 }
+async function verificateEmail(idVeryficate) {
+  try {
+    return await User.findOneAndUpdate(
+      { verificationToken: idVeryficate },
+      { verify: true, verificationToken: null },
+      {
+        new: true,
+      }
+    );
+  } catch (error) {
+    throw error;
+  }
+}
 
 module.exports = {
   addNewUser,
@@ -62,4 +75,5 @@ module.exports = {
   updateSub,
   findUserById,
   updateAvat,
+  verificateEmail,
 };
